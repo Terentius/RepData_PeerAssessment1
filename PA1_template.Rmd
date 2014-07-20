@@ -295,14 +295,16 @@ pamd.imputed$weekday <- as.factor(as.numeric(pamd.imputed$weekday))
 levels(pamd.imputed$weekday) <- c("Weekend","Weekday")
 
 library(plyr)
-# Calculate the sum of steps for each interval across all weekday days
+# Calculate the sum of steps for each interval across all weekday days and
+# calculate the mean of steps for each intervall across weekday days
 weekday.days <- ddply(pamd.imputed[pamd.imputed$weekday == "Weekday",],
                       .(interval,weekday),
                       summarize,
                       totalsteps = sum(steps, na.rm=TRUE),
                       meansteps = mean(steps, na.rm=TRUE))
 
-# Calculate the mean of steps for each intervall across weekend days
+# Calculate the sum of steps for each interval across all weekend days and
+# calculate the mean of steps for each intervall across weekend days
 weekend.days <- ddply(pamd.imputed[pamd.imputed$weekday == "Weekend",],
                       .(interval,weekday),
                       summarize,
