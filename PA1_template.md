@@ -27,7 +27,8 @@ taken
 >
 >The dataset is stored in a comma-separated-value (CSV) file and there are a total of 17,568 observations in this dataset.
 
-```{r loadingdataset}
+
+```r
 zip.filename <- "activity.zip"
 csv.filename <- "activity.csv"
 
@@ -56,18 +57,25 @@ pamd <- read.data(zip.filename,csv.filename)
 
 Sorting the data set and plotting a histogram with mean.
 
-```{r, totalstepsperday}
+
+```r
 tspd <- aggregate(data=pamd,steps~date,sum)
 summary.tspd <- summary(tspd$steps,digits=5)
 print(summary.tspd)
 ```
 
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##      41    8841   10765   10766   13294   21194
+```
+
 The mean is
-`r as.character(summary(tspd$steps,digits=5)["Mean"])`
+10766
 rounded up from the total number of steps each day.
 
 A histogram will show the data set of the total number of steps taken each day.
-```{r, plottingtotalstepsperday}
+
+```r
 library(ggplot2)
 plottingtotalstepsperday <-
         ggplot(data=tspd,aes(date,steps)) +
@@ -83,6 +91,8 @@ plottingtotalstepsperday <-
 print(plottingtotalstepsperday)
 ```
 
+![plot of chunk plottingtotalstepsperday](figure/plottingtotalstepsperday.png) 
+
 
 ## What is the average daily activity pattern?
 
@@ -96,7 +106,8 @@ print(plottingtotalstepsperday)
 
 The 5-minute interval in relation to the average number of steps taken each day.
 
-```{r, intervalplot}
+
+```r
 library(plyr)
 # Calculate the sum of steps for each interval across all days and
 # calculate the mean of steps for each intervall across all days
@@ -122,7 +133,10 @@ ggplot(data=acrossalldays,aes(x=time,
         ggtitle("Average number of steps taken across all days")
 ```
 
-```{r maximumsteps}
+![plot of chunk intervalplot](figure/intervalplot.png) 
+
+
+```r
 # Ordering the mean values in decreasing order and select the first one -
 # the highest one.
 highest <- acrossalldays[order(acrossalldays$meansteps,
@@ -131,10 +145,15 @@ highest <- acrossalldays[order(acrossalldays$meansteps,
 print(highest[c("meansteps","totalsteps","interval")])
 ```
 
+```
+##     meansteps totalsteps interval
+## 104     206.2      10927      835
+```
+
 The maximum number of steps on average across all the days in the data set is
 at interval
-`r as.character(highest$interval)` or
-`r as.character(format(highest$time,"%H:%M"))` o'clock.
+835 or
+08:35 o'clock.
 
 
 ## Imputing missing values
@@ -168,7 +187,8 @@ summaries of the data.
 What is the total number of missing values in the data set in rows from each
 column of the data set?
 
-```{r, totoalNAs}
+
+```r
 # preperation for creating a list
 totalnas <- NULL
 totalnas$steps <- sum(as.numeric(is.na(pamd$steps)))
@@ -178,16 +198,21 @@ totalnas$interval <- sum(as.numeric(is.na(pamd$interval)))
 print(as.data.frame(totalnas))
 ```
 
-There are `r as.character(totalnas$steps)` missing rows in column
-`r names(totalnas["steps"])`.
+```
+##   steps date interval
+## 1  2304    0        0
+```
+
+There are 2304 missing rows in column
+steps.
 
 
 The __strategy__ for filling in all of the missing values in the dataset:
 A missing value in the steps column will be replaced by the mean across all
 days for that corresponding 5-minute interval.
 
-```{r, fillingup}
 
+```r
 library(plyr)
 # Originally written by Brian Zive
 # technique to replace NA with mean by subset in R and the impute.mean function 
@@ -208,25 +233,36 @@ pamd.imputed <- pamd.imputed[order(pamd.imputed$date,
 
 # renumber rownames (Brian Zive)
 row.names(pamd.imputed) <- 1:nrow(pamd.imputed)
-
 ```
 
 
 What is mean total number of steps taken per day from the imputed data set?
-```{r, imputed.totalstepsperday}
+
+```r
 imputed.tspd <- aggregate(data=pamd.imputed,steps~date,sum)
 summary.imputed.tspd <- summary(imputed.tspd$steps,digits=5)
 print(summary.imputed.tspd)
 ```
+
+```
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##      41    9819   10766   10766   12811   21194
+```
 The mean is
-`r as.character(summary(imputed.tspd$steps,digits=5)["Mean"])`
+10766
 rounded up from the total number of steps each day.
 
 What is the difference of mean and median of the origin data set and the
 imputed data set in absolute values?
-```{r, differencetspd}
+
+```r
 difference.tspd <- abs(summary.tspd - summary.imputed.tspd)
 difference.tspd[c("Median","Mean")]
+```
+
+```
+## Median   Mean 
+##      1      0
 ```
 
 
@@ -234,7 +270,8 @@ Two line plots in comparision will shown the origin data set and the imputed
 data set. The origin data set with NA values and the imputed data set with
 replaced NA values with a mean value specified above as strategy.
 
-```{r, imputed.plottingtotalstepsperday}
+
+```r
 imputed.tspd$dataset <- c("imputed data set")
 tspd$dataset <- c("origin data set")
 overall.tspd <- rbind(tspd,
@@ -252,11 +289,12 @@ plot.overall.tspd <- xyplot(steps~date|dataset,
 print(plot.overall.tspd)
 ```
 
+![plot of chunk imputed.plottingtotalstepsperday](figure/imputed.plottingtotalstepsperday.png) 
+
 I conclude there is no difference between the origin data set with NA values
 and the imputed data set with a mean value from the corresponding days, because
 the mean value is zero and the median slighly changed to 1 which is nearly one 
-thousandth (```r as.character(as.numeric(difference.tspd["Median"]/
-as.numeric(summary.tspd["Median"]))) ```) to the origin data set.
+thousandth (``9.28936367858802e-05``) to the origin data set.
 
 
 ## Are there differences in activity patterns between weekdays and weekends?
@@ -276,13 +314,15 @@ as.numeric(summary.tspd["Median"]))) ```) to the origin data set.
 
 The patterns will be calculated with the imputed data set.
 
-```{r,echo=TRUE,results = "hide"}
+
+```r
 # Changing the localization to get returns from function weekdays
 # in english language.
 Sys.setlocale(category = "LC_TIME", locale = "C")
 ```
 
-```{r, weekdaysplot}
+
+```r
 # select all weekdays with the complementary of the weekend days
 pamd.imputed <- cbind(pamd.imputed,
                       weekday=!(weekdays(pamd.imputed$date) %in%
@@ -327,7 +367,10 @@ plot.all.weekdays <- xyplot(meansteps~time|weekday,
                             ylab ="Average number of steps taken across all week days")
 print(plot.all.weekdays)
 ```
-```{r,echo=TRUE,results = "hide"}
+
+![plot of chunk weekdaysplot](figure/weekdaysplot.png) 
+
+```r
 # Changing the localization back in origin sate.
 Sys.setlocale(locale = "") 
 ```
